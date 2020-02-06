@@ -28,6 +28,20 @@ namespace RobotMain
     static constexpr auto i2cPort = frc::I2C::Port::kOnboard;
 }
 
+namespace DriveControllerConst
+{
+    const uint8_t
+        Controller = 0,
+        SpeedAxis = 1,
+        RotateAxis = 4;
+}
+
+namespace OperatorControllerConst
+{
+    const uint8_t
+        Controller = 1;
+}
+
 namespace DriveConst
 {
     constexpr auto kTrackwidth = 0.66314_m;//0.6731_m;
@@ -45,6 +59,23 @@ namespace DriveConst
     constexpr double kPDriveVel = 0.000615;
     
     extern const frc::DifferentialDriveKinematics kDriveKinematics;
+}
+
+namespace ShooterConst
+{
+    const uint8_t
+        shooter0ID = 10,
+        shooter1ID = 9,
+        shooter2ID = 8,
+        indexerID = 7,
+        kSlotIdx = 0,
+	    kPIDLoopIdx = 0,
+	    kTimeoutMs = 30;
+    const double
+        kF = 0,
+        kP = 0,
+        kI = 0,
+        kD = 0;    
 }
 
 namespace AutoConst

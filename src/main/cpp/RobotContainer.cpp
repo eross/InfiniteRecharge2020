@@ -14,10 +14,17 @@ RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
   m_drivesubsystem.SetDefaultCommand(frc2::RunCommand(
     [this] {
       m_drivesubsystem.Drive(
-          m_driverController.GetRawAxis(1),
-          m_driverController.GetRawAxis(4) / 2);
+          m_driverController.GetRawAxis(DriveControllerConst::SpeedAxis),
+          m_driverController.GetRawAxis(DriveControllerConst::RotateAxis) / 2);
     },
     {&m_drivesubsystem}));
+  
+  m_shootersubsystem.SetDefaultCommand(frc2::RunCommand(
+    [this] {
+      m_shootersubsystem.SetShooterSpeed(m_operatorController.GetRawAxis(2));
+      m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawAxis(2));
+    },
+    {&m_shootersubsystem}));
 }
 
 void RobotContainer::ConfigureButtonBindings()

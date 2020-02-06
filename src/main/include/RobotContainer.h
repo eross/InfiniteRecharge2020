@@ -22,6 +22,7 @@
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/RunCommand.h>
 #include "subsystems/DriveSubsystem.h"
+#include "subsystems/ShooterSubsystem.h"
 
 /**
  * This class is where the bulk of the robot should be declared.  Since
@@ -41,8 +42,10 @@ class RobotContainer
  private:
   //frc::SendableChooser<frc2::Command*> m_chooser;
   DriveSubsystem m_drivesubsystem;
+  ShooterSubsystem m_shootersubsystem;
   
-  frc::Joystick m_driverController{1};
+  frc::Joystick m_driverController{DriveControllerConst::Controller};
+  frc::Joystick m_operatorController{OperatorControllerConst::Controller};
 
   frc2::InstantCommand m_driveScaledSpeed{[this] { m_drivesubsystem.SetMaxOutput(0.8); }, {}};
   frc2::InstantCommand m_driveFullSpeed{[this] { m_drivesubsystem.SetMaxOutput(1); }, {}};
