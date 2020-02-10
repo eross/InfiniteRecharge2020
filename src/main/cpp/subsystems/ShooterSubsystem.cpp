@@ -10,15 +10,17 @@
 ShooterSubsystem::ShooterSubsystem()
 {
     m_Indexer = new VictorSPX(ShooterConst::indexerID);
-
+    
     m_Shooter0 = new TalonSRX(ShooterConst::shooter0ID);
     m_Shooter1 = new TalonSRX(ShooterConst::shooter1ID);
     m_Shooter2 = new TalonSRX(ShooterConst::shooter2ID);
-
+    m_Shooter3 = new TalonSRX(ShooterConst::shooter3ID);
     m_Shooter0->Follow(*m_Shooter2);
     m_Shooter1->Follow(*m_Shooter2);
+    m_Shooter3->Follow(*m_Shooter2);
     m_Shooter0->SetInverted(InvertType::OpposeMaster);
     m_Shooter1->SetInverted(InvertType::OpposeMaster);
+    m_Shooter3->SetInverted(InvertType::FollowMaster);
 
     m_Shooter2->ConfigSelectedFeedbackSensor(
         FeedbackDevice::QuadEncoder, ShooterConst::kPIDLoopIdx,
@@ -26,7 +28,7 @@ ShooterSubsystem::ShooterSubsystem()
 
     m_Shooter2->SetSelectedSensorPosition(0, ShooterConst::kPIDLoopIdx, ShooterConst::kTimeoutMs);
 
-    m_Shooter2->SetSensorPhase(false);
+    m_Shooter2->SetSensorPhase(true);
 
     m_Shooter2->ConfigNominalOutputForward(0, ShooterConst::kTimeoutMs);
     m_Shooter2->ConfigNominalOutputReverse(0, ShooterConst::kTimeoutMs);
@@ -39,7 +41,10 @@ ShooterSubsystem::ShooterSubsystem()
     m_Shooter2->Config_kD(ShooterConst::kPIDLoopIdx, ShooterConst::kD, ShooterConst::kTimeoutMs);
 }
 
-void ShooterSubsystem::Periodic() {}
+void ShooterSubsystem::Periodic() 
+{
+    //std::cout << GetDistanceToRPM() << std::endl;
+}
 
 void ShooterSubsystem::SetShooterSpeed(double speed)
 {
@@ -48,10 +53,11 @@ void ShooterSubsystem::SetShooterSpeed(double speed)
 
 void ShooterSubsystem::SetShooterRPM(double rpm)
 {
-    m_Shooter2->Set(ControlMode::Velocity, rpm);
+    //std::cout << ((double)m_Shooter2->GetSelectedSensorVelocity() / 4096) * 10 * 60 << std::endl;
+    m_Shooter2->Set(ControlMode::Velocity, (rpm * (double)4096) / 10 / 60);
 }
 
 void ShooterSubsystem::SetIndexerSpeed(double speed)
 {
-    m_Indexer->Set(ControlMode::PercentOutput, -speed);
+    m_Indexer->Set(ControlMode::PercentOutput, speed);
 }

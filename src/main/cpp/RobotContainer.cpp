@@ -10,28 +10,46 @@
 RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
 {
   ConfigureButtonBindings();
-
+  
   m_drivesubsystem.SetDefaultCommand(frc2::RunCommand(
     [this] {
       m_drivesubsystem.Drive(
-          m_driverController.GetRawAxis(DriveControllerConst::SpeedAxis),
-          m_driverController.GetRawAxis(DriveControllerConst::RotateAxis) / 2);
+          m_driverController.GetRawAxis(DriveControllerConst::SpeedAxis) / (m_driverController.GetRawAxis(3) > .1 ? 1 : 1.2),
+          m_driverController.GetRawButton(1) ?  m_drivesubsystem.GetLimeOutput()->GetOutput() :  (-m_driverController.GetRawAxis(DriveControllerConst::RotateAxis) / 1.5));
+      //std::cout << m_drivesubsystem.GetLimeOutput()->GetOutput() << std::endl;
+      m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter());
+      if(m_driverController.GetRawButtonPressed(1))
+      {
+        std::cout << "enable" << std::endl;
+        m_drivesubsystem.GetLimePID()->Reset();
+        m_drivesubsystem.GetLimePID()->Enable();
+      }
+      else if(m_driverController.GetRawButtonReleased(1))
+      {
+        m_drivesubsystem.GetLimePID()->Disable();
+      }
     },
     {&m_drivesubsystem}));
-  
+    
   m_shootersubsystem.SetDefaultCommand(frc2::RunCommand(
     [this] {
-      m_shootersubsystem.SetShooterSpeed(m_operatorController.GetRawAxis(2));
-      m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawAxis(2));
+      m_shootersubsystem.SetShooterRPM(m_operatorController.GetRawButton(5) ? m_shootersubsystem.GetDistanceToRPM() : 0);
+      m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawButton(1) ? 1 : m_operatorController.GetRawButton(8) ? -1 : 0);
     },
     {&m_shootersubsystem}));
+    
+  m_intakesubsystem.SetDefaultCommand(frc2::RunCommand(
+    [this] {
+      m_intakesubsystem.SetIntakeSpeed(abs(m_operatorController.GetRawAxis(3) - m_operatorController.GetRawAxis(2)) > .05 ? (m_operatorController.GetRawAxis(3) - m_operatorController.GetRawAxis(2)) : m_operatorController.GetRawButton(1) ? .3 : 0);
+      m_intakesubsystem.SetSliderPosition(m_operatorController.GetRawButton(4) ? true : false);
+    },
+    {&m_intakesubsystem}));
+    
 }
 
 void RobotContainer::ConfigureButtonBindings()
 {
-    frc2::JoystickButton(&m_driverController, 6)
-    .WhenPressed(&m_driveFullSpeed)
-    .WhenReleased(&m_driveScaledSpeed);
+      
 }
 
 void RobotContainer::SetDriveBreakMode(bool breakmode)
@@ -55,17 +73,16 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
   frc::TrajectoryConfig config(AutoConst::kMaxSpeed, AutoConst::kMaxAcceleration);
   config.SetKinematics(DriveConst::kDriveKinematics);
   config.AddConstraint(autoVoltageConstraint);
-  
   auto testTrajectory = frc::TrajectoryGenerator::GenerateTrajectory(
-    frc::Pose2d(0_m, 0_m, frc::Rotation2d(0_deg)),
-    {frc::Translation2d(2.2098_m, 0.7018_m)},
-    frc::Pose2d(3.5786_m, 0.7018_m, frc::Rotation2d(0_deg)),
+    frc::Pose2d(0_in, 0_in, frc::Rotation2d(0_deg)),
+    {frc::Translation2d(50_in, -16_in)},
+    frc::Pose2d(228_in, -16_in, frc::Rotation2d(0_deg)),
     config);
 
   auto testTrajectory2 = frc::TrajectoryGenerator::GenerateTrajectory(
-    frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(180_deg)),
-    {frc::Translation2d(-2.2098_m, -0.7018_m)},
-    frc::Pose2d(-3.5786_m, -0.7018_m, frc::Rotation2d(180_deg)),
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(180_deg)),
+    {frc::Translation2d(-50.0_in, 0.0_in)},
+    frc::Pose2d(-132_in, 0.0_in, frc::Rotation2d(180_deg)),
     config);
 
   frc2::RamseteCommand ramseteCommand(
@@ -89,8 +106,32 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
       frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
       [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
       {&m_drivesubsystem});
+;
 
   return new frc2::SequentialCommandGroup(
-      std::move(ramseteCommand), frc2::InstantCommand([this] { m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(180_deg))); }, {}), frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {}), std::move(ramseteCommand2),
-      frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {}));
+    frc2::InstantCommand([this] { 
+        m_shootersubsystem.SetShooterRPM(5100/*m_shootersubsystem.GetDistanceToRPM()*/); }, {&m_shootersubsystem}),
+    frc2::InstantCommand([this] { 
+        m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+    std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
+    frc2::InstantCommand([this] { 
+        m_shootersubsystem.SetIndexerSpeed(0);
+        m_shootersubsystem.SetShooterRPM(0); }, {&m_shootersubsystem}),
+    frc2::InstantCommand([this] { 
+        m_intakesubsystem.SetIntakeSpeed(1);
+        m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+    std::move(ramseteCommand),
+    frc2::InstantCommand([this] { 
+        m_intakesubsystem.SetIntakeSpeed(0);
+        m_intakesubsystem.SetSliderPosition(false); }, {&m_intakesubsystem}),
+    frc2::InstantCommand([this] { m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(180_deg))); }, {&m_drivesubsystem}),
+    frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
+    std::move(ramseteCommand2),
+    frc2::InstantCommand([this] { 
+        m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+    frc2::InstantCommand([this] { 
+        m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+    std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
+
+    frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {}));
 }

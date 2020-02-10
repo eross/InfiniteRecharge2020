@@ -3,7 +3,11 @@
 DriveSubsystem::DriveSubsystem() : m_odometry{frc::Rotation2d(units::degree_t(GetHeading()))}
 {
     ResetEncoders();
-
+    limeOutput = new LimePIDOutput();
+    limeSource = new LimePIDSource();
+    limePID = new frc::PIDController(0.09, 0.0, 0.0, limeSource, limeOutput);
+    limePID->SetOutputRange(-.2, .2);
+    limePID->SetSetpoint(-2);
     m_colorMatcher.AddColorMatch(kBlueTarget);
     m_colorMatcher.AddColorMatch(kGreenTarget);
     m_colorMatcher.AddColorMatch(kRedTarget);
@@ -17,7 +21,7 @@ DriveSubsystem::DriveSubsystem() : m_odometry{frc::Rotation2d(units::degree_t(Ge
 // This method will be called once per scheduler run
 void DriveSubsystem::Periodic()
 {
-  std::cout << "distance: " << GetLeftEncoder().GetPosition() << " : " << -GetRightEncoder().GetPosition() << " angle: " << GetHeading() << std::endl;
+  //std::cout << "distance: " << GetLeftEncoder().GetPosition() << " : " << -GetRightEncoder().GetPosition() << " angle: " << m_gyro.GetAngle() << std::endl;
   frc::Color detectedColor = m_colorSensor.GetColor();
   std::string colorString;
   double confidence = 0.0;
@@ -56,7 +60,7 @@ void DriveSubsystem::Periodic()
 
 void DriveSubsystem::Drive(double forward, double rotate)
 {
-    m_drive.ArcadeDrive(forward, rotate);
+  m_drive.ArcadeDrive(forward, rotate);
 }
 
 void DriveSubsystem::TankDriveVolts(units::volt_t left, units::volt_t right)

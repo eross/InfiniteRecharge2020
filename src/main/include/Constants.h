@@ -44,19 +44,19 @@ namespace OperatorControllerConst
 
 namespace DriveConst
 {
-    constexpr auto kTrackwidth = 0.66314_m;//0.6731_m;
+    constexpr auto kTrackwidth = 0.6106_m;//0.6731_m;
     constexpr double kWheelDiameterMeters = 0.1524;
-    constexpr double kencoderConstant = (1 / 10.42) * kWheelDiameterMeters * wpi::math::pi;
+    constexpr double kencoderConstant = (1 / 10) * kWheelDiameterMeters * wpi::math::pi;
 
     const uint8_t
-        leftLeadDeviceID = 16,
-        leftFollowDeviceID = 15,
-        rightLeadDeviceID = 14,
-        rightFollowDeviceID = 13;
-    constexpr auto ks = 0.145_V;
-    constexpr auto kv = 2.72 * 1_V * 1_s / 1_m;
-    constexpr auto ka = 0.467 * 1_V * 1_s * 1_s / 1_m;
-    constexpr double kPDriveVel = 0.000615;
+        leftLeadDeviceID = 1,
+        leftFollowDeviceID = 2,
+        rightLeadDeviceID = 4,
+        rightFollowDeviceID = 3;
+    constexpr auto ks = 0.152_V;
+    constexpr auto kv = 2.65 * 1_V * 1_s / 1_m;
+    constexpr auto ka = 0.47 * 1_V * 1_s * 1_s / 1_m;
+    constexpr double kPDriveVel = 0.0000627;
     
     extern const frc::DifferentialDriveKinematics kDriveKinematics;
 }
@@ -67,20 +67,29 @@ namespace ShooterConst
         shooter0ID = 10,
         shooter1ID = 9,
         shooter2ID = 8,
+        shooter3ID = 12,
         indexerID = 7,
         kSlotIdx = 0,
 	    kPIDLoopIdx = 0,
 	    kTimeoutMs = 30;
     const double
-        kF = 0,
-        kP = 0,
+        kF = 0.0183,
+        kP = 0.1,
         kI = 0,
         kD = 0;    
 }
 
+namespace IntakeConst
+{
+    const uint8_t
+        kIntake = 11,
+        kSlider0 = 0,
+        kSlider1 = 4;
+}
+
 namespace AutoConst
 {
-    constexpr auto kMaxSpeed = 3_mps;
+    constexpr auto kMaxSpeed = 1_mps;
     constexpr auto kMaxAcceleration = 3_mps_sq;
 
     constexpr double kRamseteB = 2;

@@ -17,13 +17,22 @@
 #include <units/units.h>
 #include <frc/smartdashboard/smartdashboard.h>
 #include <frc/util/color.h>
+#include <networktables/NetworkTable.h>
+#include <networktables/NetworkTableInstance.h>
 #include <vector>
 #include "rev/CANSparkMax.h"
 #include "rev/ColorSensorV3.h"
 #include "rev/ColorMatch.h"
 #include "Constants.h"
+#include "LimePIDOutput.h"
+#include "LimePIDSource.h"
 
 class DriveSubsystem : public frc2::SubsystemBase {
+  private:
+  
+  frc::PIDController* limePID;
+  LimePIDSource* limeSource;
+  LimePIDOutput* limeOutput;
  public:
   void Drive(double speed, double rotate);
 
@@ -60,6 +69,15 @@ class DriveSubsystem : public frc2::SubsystemBase {
     m_leftFollowMotor.SetIdleMode(idlemode);
     m_rightFollowMotor.SetIdleMode(idlemode);
   }
+  double GetTargetCenter()
+  {
+    std::shared_ptr<NetworkTable> table = nt::NetworkTableInstance::GetDefault().GetTable("limelight");
+    double center = table->GetNumber("tx",0.0);
+    return center;
+  }
+  LimePIDSource* GetLimeSource() { return limeSource; }
+  LimePIDOutput* GetLimeOutput() { return limeOutput; }
+  frc::PIDController* GetLimePID() { return limePID; }
  private:
   bool setDriveReversed = false;
   rev::ColorSensorV3 m_colorSensor{RobotMain::i2cPort};
@@ -78,14 +96,14 @@ class DriveSubsystem : public frc2::SubsystemBase {
   frc::SpeedControllerGroup m_leftMotors{m_leftLeadMotor, m_leftFollowMotor};
 
   frc::SpeedControllerGroup m_rightMotors{m_rightLeadMotor, m_rightFollowMotor};
-
+public:
   frc::DifferentialDrive m_drive{m_leftMotors, m_rightMotors};
-
+private:
   frc::ADXRS450_Gyro m_gyro;
 
   frc::DifferentialDriveOdometry m_odometry;
   
-  const bool kGyroReversed = true;
+  const bool kGyroReversed = false;
   
   // Components (e.g. motor controllers and sensors) should generally be
   // declared private and exposed only through public methods.
