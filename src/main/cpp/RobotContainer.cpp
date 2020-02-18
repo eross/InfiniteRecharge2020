@@ -9,42 +9,114 @@
 
 RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
 {
+  m_chooser.AddDefault("8 trench", 0);
+  m_chooser.AddObject("steal", 1);
+  m_chooser.AddObject("3 ball", 2);
+  m_chooser.AddObject("8 steal", 3);
+  m_chooser.AddDefault("5 trench", 4);
+	frc::SmartDashboard::PutData("Auto Chooser" , &m_chooser);
   ConfigureButtonBindings();
   
   m_drivesubsystem.SetDefaultCommand(frc2::RunCommand(
     [this] {
-      m_drivesubsystem.Drive(
-          m_driverController.GetRawAxis(DriveControllerConst::SpeedAxis) / (m_driverController.GetRawAxis(3) > .1 ? 1 : 1.2),
-          m_driverController.GetRawButton(1) ?  m_drivesubsystem.GetLimeOutput()->GetOutput() :  (-m_driverController.GetRawAxis(DriveControllerConst::RotateAxis) / 1.5));
-      //std::cout << m_drivesubsystem.GetLimeOutput()->GetOutput() << std::endl;
-      m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter());
-      if(m_driverController.GetRawButtonPressed(1))
+      //std::cout << m_operatorController.GetPOV(0) << std::endl;
+      /*
+      if(m_operatorController.GetPOV(0) > 0/*m_timer.GetMatchTime() < 30 && m_timer.GetMatchTime() > 26)
       {
-        std::cout << "enable" << std::endl;
-        m_drivesubsystem.GetLimePID()->Reset();
-        m_drivesubsystem.GetLimePID()->Enable();
+        m_operatorController.SetRumble(frc::GenericHID::RumbleType::kLeftRumble, 1);
+        m_operatorController.SetRumble(frc::GenericHID::RumbleType::kRightRumble, 1);
       }
-      else if(m_driverController.GetRawButtonReleased(1))
+      else
       {
-        m_drivesubsystem.GetLimePID()->Disable();
+        m_operatorController.SetRumble(frc::GenericHID::RumbleType::kLeftRumble, 0);
+        m_operatorController.SetRumble(frc::GenericHID::RumbleType::kRightRumble, 0);
+      }*/
+        m_drivesubsystem.Drive(
+            m_driverController.GetRawAxis(DriveControllerConst::SpeedAxis) / (m_driverController.GetRawAxis(3) > .1 ? 1 : 1.2),
+            m_driverController.GetRawButton(1) ?  m_drivesubsystem.GetLimeOutput()->GetOutput() :  (-m_driverController.GetRawAxis(DriveControllerConst::RotateAxis) / 1.5));
+        //std::cout << m_drivesubsystem.GetLimeOutput()->GetOutput() << std::endl;
+      if(!lifted)
+      {
+        m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter());
+        if(m_driverController.GetRawButtonPressed(1))
+        {
+          std::cout << "enable" << std::endl;
+          m_drivesubsystem.GetLimePID()->Reset();
+          m_drivesubsystem.GetLimePID()->Enable();
+        }
+        else if(m_driverController.GetRawButtonReleased(1))
+        {
+          m_drivesubsystem.GetLimePID()->Disable();
+        }
       }
     },
     {&m_drivesubsystem}));
     
   m_shootersubsystem.SetDefaultCommand(frc2::RunCommand(
     [this] {
-      m_shootersubsystem.SetShooterRPM(m_operatorController.GetRawButton(5) ? m_shootersubsystem.GetDistanceToRPM() : 0);
-      m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawButton(1) ? 1 : m_operatorController.GetRawButton(8) ? -1 : 0);
+      if(!lifted)
+      {
+        m_shootersubsystem.SetShooterRPM(m_operatorController.GetRawButton(5) ? m_shootersubsystem.GetDistanceToRPM()/*frc::SmartDashboard::GetNumber("RPM", 0)*/ : 0);
+        m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawButton(1) ? 1 : m_operatorController.GetRawButton(8) ? -1 : 0);
+      }
     },
     {&m_shootersubsystem}));
     
   m_intakesubsystem.SetDefaultCommand(frc2::RunCommand(
     [this] {
-      m_intakesubsystem.SetIntakeSpeed(abs(m_operatorController.GetRawAxis(3) - m_operatorController.GetRawAxis(2)) > .05 ? (m_operatorController.GetRawAxis(3) - m_operatorController.GetRawAxis(2)) : m_operatorController.GetRawButton(1) ? .3 : 0);
-      m_intakesubsystem.SetSliderPosition(m_operatorController.GetRawButton(4) ? true : false);
+      
+      if(!lifted)
+      {
+        m_intakesubsystem.SetIntakeSpeed(abs(m_operatorController.GetRawAxis(3) - m_operatorController.GetRawAxis(2)) > .05 ? (m_operatorController.GetRawAxis(3) - m_operatorController.GetRawAxis(2)) : m_operatorController.GetRawButton(1) ? .3 : 0);
+        m_intakesubsystem.SetSliderPosition(m_operatorController.GetRawButton(4) ? true : false);
+      }
     },
     {&m_intakesubsystem}));
-    
+
+  m_liftsubsystem.SetDefaultCommand(frc2::RunCommand(
+    [this] {
+      
+      if(!lifted)
+      {
+        if(m_operatorController.GetPOV(0) == 0)
+        {
+          m_liftsubsystem.SetLiftPosition(false);
+        }
+        else if(m_operatorController.GetRawButton(3))
+        {
+          m_liftsubsystem.SetLiftPosition(true);
+          m_liftsubsystem.SetRatchetPosition(false);
+        }
+      }
+      if(m_operatorController.GetRawButton(6))
+      {
+        lifted = true;
+        m_liftsubsystem.SetLiftPosition(true);
+        m_liftsubsystem.SetRatchetPosition(true);
+        m_liftsubsystem.SetWinchSpeed(.5, -30, true);
+      }
+      else if(m_operatorController.GetPOV(0) >= 0)
+      {
+        if(!lifted)
+        {
+          m_liftsubsystem.SetRatchetPosition(false);
+          m_liftsubsystem.SetWinchSpeed(m_operatorController.GetPOV(0) == 0 ? -.5 : m_operatorController.GetPOV(0) == 180 ? .3 : 0, -80, false);
+        }
+      }
+      else
+      {
+        m_liftsubsystem.SetWinchSpeed(0, -1, false);
+      }
+      
+      if(enabled)
+      {
+        m_liftsubsystem.SetWinchIdleMode(rev::CANSparkMax::IdleMode::kCoast);
+        m_liftsubsystem.SetWinchSpeed(0, -1, false);
+        m_liftsubsystem.SetRatchetPosition(false);
+        enabled = false;
+      }
+    },
+    {&m_liftsubsystem}));
 }
 
 void RobotContainer::ConfigureButtonBindings()
@@ -73,20 +145,87 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
   frc::TrajectoryConfig config(AutoConst::kMaxSpeed, AutoConst::kMaxAcceleration);
   config.SetKinematics(DriveConst::kDriveKinematics);
   config.AddConstraint(autoVoltageConstraint);
-  auto testTrajectory = frc::TrajectoryGenerator::GenerateTrajectory(
+  auto Trajectory0 = frc::TrajectoryGenerator::GenerateTrajectory(
     frc::Pose2d(0_in, 0_in, frc::Rotation2d(0_deg)),
     {frc::Translation2d(50_in, -16_in)},
     frc::Pose2d(228_in, -16_in, frc::Rotation2d(0_deg)),
     config);
 
-  auto testTrajectory2 = frc::TrajectoryGenerator::GenerateTrajectory(
+  auto Trajectory1 = frc::TrajectoryGenerator::GenerateTrajectory(
     frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(180_deg)),
     {frc::Translation2d(-50.0_in, 0.0_in)},
     frc::Pose2d(-132_in, 0.0_in, frc::Rotation2d(180_deg)),
     config);
+/*old
+  auto Trajectory2 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(0_deg)),
+    {frc::Translation2d(20_in, -20.0_in), frc::Translation2d(13_in, -40.0_in)},
+    frc::Pose2d(13_in, -135.0_in, frc::Rotation2d(-90_deg)),
+    config);
+
+  auto Trajectory3 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(13.0_in, -135.0_in, frc::Rotation2d(-90_deg)),
+    {frc::Translation2d(13_in, -150.0_in)},
+    frc::Pose2d(13_in, -226.0_in, frc::Rotation2d(-90_deg)),
+    config);
+*/
+  auto Trajectory2 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(0_deg)),
+    {frc::Translation2d(20_in, -20.0_in)},
+    frc::Pose2d(13_in, -135.0_in, frc::Rotation2d(-93_deg)),
+    config);
+
+  auto Trajectory3 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(13.0_in, -135.0_in, frc::Rotation2d(-93_deg)),
+    {frc::Translation2d(13_in, -150.0_in)},
+    frc::Pose2d(13_in, -226.0_in, frc::Rotation2d(-90_deg)),
+    config);
+
+  auto Trajectory4 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(-90_deg)),
+    {frc::Translation2d(-1_in, -70.0_in)},
+    frc::Pose2d(-2_in, -126.0_in, frc::Rotation2d(-95_deg)),
+    config);
+
+  auto Trajectory5 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(0_deg)),
+    {frc::Translation2d(20_in, 20.0_in)},
+    frc::Pose2d(13_in, 104.0_in, frc::Rotation2d(93_deg)),
+    config);
+
+  auto Trajectory6 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(93_deg)),
+    {frc::Translation2d(-20_in, 35.0_in)},
+    frc::Pose2d(-40_in, 70.0_in, frc::Rotation2d(130_deg)),
+    config);
+
+  auto Trajectory7 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(0_deg)),
+    {frc::Translation2d(6_in, 0.0_in)},
+    frc::Pose2d(12_in, 0.0_in, frc::Rotation2d(0_deg)),
+    config);
+
+  auto Trajectory8 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(93_deg)),
+    {frc::Translation2d(-20_in, 20.0_in)},
+    frc::Pose2d(-130_in, 50.0_in, frc::Rotation2d(110_deg)),
+    config);
+
+  auto Trajectory9 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(93_deg)),
+    {frc::Translation2d(-1_in, 5.0_in)},
+    frc::Pose2d(-2_in, 26.0_in, frc::Rotation2d(68_deg)),
+    config);
+
+  auto Trajectory10 = frc::TrajectoryGenerator::GenerateTrajectory(
+    frc::Pose2d(0.0_in, 0.0_in, frc::Rotation2d(68_deg)),
+    {frc::Translation2d(2_in, 10.0_in)},
+    frc::Pose2d(1_in, 26.0_in, frc::Rotation2d(120_deg)),
+    config);
+
 
   frc2::RamseteCommand ramseteCommand(
-      testTrajectory, [this]() { return m_drivesubsystem.GetPose(); },
+      Trajectory0, [this]() { return m_drivesubsystem.GetPose(); },
       frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
       frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
       DriveConst::kDriveKinematics,
@@ -97,7 +236,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
       {&m_drivesubsystem});
 
   frc2::RamseteCommand ramseteCommand2(
-      testTrajectory2, [this]() { return m_drivesubsystem.GetPose(); },
+      Trajectory1, [this]() { return m_drivesubsystem.GetPose(); },
       frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
       frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
       DriveConst::kDriveKinematics,
@@ -106,11 +245,111 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
       frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
       [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
       {&m_drivesubsystem});
-;
 
+  frc2::RamseteCommand ramseteCommand3(
+      Trajectory2, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+  frc2::RamseteCommand ramseteCommand4(
+      Trajectory3, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+  frc2::RamseteCommand ramseteCommand5(
+      Trajectory4, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+  frc2::RamseteCommand ramseteCommand6(
+      Trajectory5, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+    
+    frc2::RamseteCommand ramseteCommand7(
+      Trajectory6, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+    frc2::RamseteCommand ramseteCommand8(
+      Trajectory7, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+    frc2::RamseteCommand ramseteCommand9(
+      Trajectory8, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+    frc2::RamseteCommand ramseteCommand10(
+      Trajectory9, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+    frc2::RamseteCommand ramseteCommand11(
+      Trajectory10, [this]() { return m_drivesubsystem.GetPose(); },
+      frc::RamseteController(AutoConst::kRamseteB, AutoConst::kRamseteZeta),
+      frc::SimpleMotorFeedforward<units::meters>(DriveConst::ks, DriveConst::kv, DriveConst::ka),
+      DriveConst::kDriveKinematics,
+      [this] { return m_drivesubsystem.GetWheelSpeeds(); },
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0),
+      frc2::PIDController(DriveConst::kPDriveVel, 0, 0), 
+      [this](auto left, auto right) { m_drivesubsystem.TankDriveVolts(left, right); },
+      {&m_drivesubsystem});
+
+
+  /*
   return new frc2::SequentialCommandGroup(
     frc2::InstantCommand([this] { 
-        m_shootersubsystem.SetShooterRPM(5100/*m_shootersubsystem.GetDistanceToRPM()*/); }, {&m_shootersubsystem}),
+        m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
     frc2::InstantCommand([this] { 
         m_drivesubsystem.GetLimePID()->Enable(); }, {}),
     std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
@@ -134,4 +373,152 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
     std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
 
     frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {}));
+    */
+    if(m_chooser.GetSelected() == 0)
+    {
+      return new frc2::SequentialCommandGroup(
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(1);
+          m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+      std::move(ramseteCommand3),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(1);
+          m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+      frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+      frc2::InstantCommand([this] { 
+          m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+      std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
+      frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetIndexerSpeed(0);
+          m_shootersubsystem.SetShooterRPM(0); }, {&m_shootersubsystem}),
+      frc2::InstantCommand([this] { 
+        m_intakesubsystem.SetIntakeSpeed(1);
+        m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+      std::move(ramseteCommand4),
+      frc2::InstantCommand([this] { 
+        m_intakesubsystem.SetIntakeSpeed(1);
+        m_intakesubsystem.SetSliderPosition(false); }, {&m_intakesubsystem}),
+      frc2::InstantCommand([this] { 
+        m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(units::degree_t(m_drivesubsystem.GetHeading())))); }, {&m_drivesubsystem}),
+      frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
+      std::move(ramseteCommand5),
+      frc2::InstantCommand([this] { 
+        m_intakesubsystem.SetIntakeSpeed(1);
+        m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+      frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+      frc2::InstantCommand([this] { 
+          m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+      std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
+
+        frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {})
+      );
+    }
+    else if(m_chooser.GetSelected() == 1)
+    {
+      return new frc2::SequentialCommandGroup(
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(1);
+          m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+        std::move(ramseteCommand6),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(0);
+          m_intakesubsystem.SetSliderPosition(false); }, {&m_intakesubsystem}),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(units::degree_t(m_drivesubsystem.GetHeading())))); }, {&m_drivesubsystem}),
+        frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
+        std::move(ramseteCommand7),
+        frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(.5); }, {&m_intakesubsystem}),
+        std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem}, 8)),
+
+        frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {})
+      );
+    }
+    else if(m_chooser.GetSelected() == 2)
+    {
+      return new frc2::SequentialCommandGroup(
+        std::move(ramseteCommand8),
+        frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(.5); }, {&m_intakesubsystem}),
+        std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem}, 8)),
+
+        frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {})
+      );
+    }
+    else if(m_chooser.GetSelected() == 3)
+    {
+      return new frc2::SequentialCommandGroup(
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(1);
+          m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+        std::move(ramseteCommand6),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(0);
+          m_intakesubsystem.SetSliderPosition(false); }, {&m_intakesubsystem}),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(units::degree_t(m_drivesubsystem.GetHeading())))); }, {&m_drivesubsystem}),
+        frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
+        std::move(ramseteCommand9),
+        frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(.5); }, {&m_intakesubsystem}),
+        std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(units::degree_t(m_drivesubsystem.GetHeading())))); }, {&m_drivesubsystem}),
+        frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(false); }, {&m_drivesubsystem}),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(1);
+          m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+        std::move(ramseteCommand10),
+                frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(0);
+          m_intakesubsystem.SetSliderPosition(false); }, {&m_intakesubsystem}),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(units::degree_t(m_drivesubsystem.GetHeading())))); }, {&m_drivesubsystem}),
+        frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
+        std::move(ramseteCommand11),
+        frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+        frc2::InstantCommand([this] { 
+          m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(.5); }, {&m_intakesubsystem}),
+        std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
+        frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {})
+      );
+    }
+    else if(m_chooser.GetSelected() == 4)
+    {
+            return new frc2::SequentialCommandGroup(
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(1);
+          m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+      std::move(ramseteCommand3),
+        frc2::InstantCommand([this] { 
+          m_intakesubsystem.SetIntakeSpeed(1);
+          m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
+      frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
+      frc2::InstantCommand([this] { 
+          m_drivesubsystem.GetLimePID()->Enable(); }, {}),
+      std::move(AutoVisionCommand([this]() { return m_shootersubsystem.SetIndexerSpeed(1); }, [this]() { return m_drivesubsystem.GetLimeSource()->SetInput(m_drivesubsystem.GetTargetCenter()); }, [this]() { return m_drivesubsystem.GetLimeOutput()->GetOutput(); }, &m_drivesubsystem.m_drive, {&m_drivesubsystem, &m_shootersubsystem})),
+      frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetIndexerSpeed(0);
+          m_shootersubsystem.SetShooterRPM(0); }, {&m_shootersubsystem}),
+        frc2::InstantCommand([this] { m_drivesubsystem.TankDriveVolts(0_V, 0_V); }, {})
+      );
+    }
 }

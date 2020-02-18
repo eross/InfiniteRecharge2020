@@ -37,9 +37,10 @@ class AutoVisionCommand
   std::function<void()> feedpid;
   std::function<void()> output;
   frc::Timer timer;
-  
+  double shoot_time = 4;
  public:
   AutoVisionCommand(std::function<void()> output, std::function<void()> feedpid, std::function<double()> vision, frc::DifferentialDrive* wheelSpeeds, std::initializer_list<frc2::Subsystem*> requirements);
+  AutoVisionCommand(std::function<void()> output, std::function<void()> feedpid, std::function<double()> vision, frc::DifferentialDrive* wheelSpeeds, std::initializer_list<frc2::Subsystem*> requirements, double shoot_time);
 
   void Initialize() override;
 

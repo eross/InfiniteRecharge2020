@@ -9,6 +9,7 @@
 
 #include <frc/TimedRobot.h>
 #include <frc2/command/Command.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/WPILib.h>
 #include "Constants.h"
 #include "RobotContainer.h"

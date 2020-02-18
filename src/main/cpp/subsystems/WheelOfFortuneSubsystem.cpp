@@ -5,24 +5,9 @@
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
 
-#include "subsystems/IntakeSubsystem.h"
+#include "subsystems/WheelOfFortuneSubsystem.h"
 
-IntakeSubsystem::IntakeSubsystem()
-{
-    m_Intake = new TalonSRX(IntakeConst::kIntake);
-    
-    m_Slider = new frc::DoubleSolenoid(IntakeConst::kSlider0, IntakeConst::kSlider1);
-}
+WheelOfFortuneSubsystem::WheelOfFortuneSubsystem() {}
 
 // This method will be called once per scheduler run
-void IntakeSubsystem::Periodic() {}
-
-void IntakeSubsystem::SetIntakeSpeed(double speed)
-{
-    m_Intake->Set(ControlMode::PercentOutput, speed);
-}
-
-void IntakeSubsystem::SetSliderPosition(bool position)
-{
-    m_Slider->Set(position ? frc::DoubleSolenoid::Value::kForward : frc::DoubleSolenoid::Value::kReverse);
-}
+void WheelOfFortuneSubsystem::Periodic() {}

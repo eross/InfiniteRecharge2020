@@ -44,7 +44,7 @@ namespace OperatorControllerConst
 
 namespace DriveConst
 {
-    constexpr auto kTrackwidth = 0.6106_m;//0.6731_m;
+    constexpr auto kTrackwidth = 0.6013_m;//0.6731_m;
     constexpr double kWheelDiameterMeters = 0.1524;
     constexpr double kencoderConstant = (1 / 10) * kWheelDiameterMeters * wpi::math::pi;
 
@@ -53,10 +53,10 @@ namespace DriveConst
         leftFollowDeviceID = 2,
         rightLeadDeviceID = 4,
         rightFollowDeviceID = 3;
-    constexpr auto ks = 0.152_V;
-    constexpr auto kv = 2.65 * 1_V * 1_s / 1_m;
-    constexpr auto ka = 0.47 * 1_V * 1_s * 1_s / 1_m;
-    constexpr double kPDriveVel = 0.0000627;
+    constexpr auto ks = 0.17_V;
+    constexpr auto kv = 2.66 * 1_V * 1_s / 1_m;
+    constexpr auto ka = 0.493 * 1_V * 1_s * 1_s / 1_m;
+    constexpr double kPDriveVel = 0.0000652;
     
     extern const frc::DifferentialDriveKinematics kDriveKinematics;
 }
@@ -87,10 +87,18 @@ namespace IntakeConst
         kSlider1 = 4;
 }
 
+namespace LiftConst
+{
+    const uint8_t
+        kLift0 = 1,
+        kLift1 = 5,
+        kWinch = 5;
+}
+
 namespace AutoConst
 {
-    constexpr auto kMaxSpeed = 1_mps;
-    constexpr auto kMaxAcceleration = 3_mps_sq;
+    constexpr auto kMaxSpeed = 2.2_mps;//1
+    constexpr auto kMaxAcceleration = 2_mps_sq;//3
 
     constexpr double kRamseteB = 2;
     constexpr double kRamseteZeta = 0.7;

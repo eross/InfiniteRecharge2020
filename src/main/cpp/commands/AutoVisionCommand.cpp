@@ -9,9 +9,19 @@
 
 AutoVisionCommand::AutoVisionCommand(std::function<void()> output, std::function<void()> feedpid, std::function<double()> vision, frc::DifferentialDrive* wheelSpeeds, std::initializer_list<frc2::Subsystem*> requirements) : wheelSpeeds(wheelSpeeds), vision(vision), feedpid(feedpid), output(output)
 {
+  this->shoot_time = 4;
   AddRequirements(requirements);
   // Use addRequirements() here to declare subsystem dependencies.
 }
+
+
+AutoVisionCommand::AutoVisionCommand(std::function<void()> output, std::function<void()> feedpid, std::function<double()> vision, frc::DifferentialDrive* wheelSpeeds, std::initializer_list<frc2::Subsystem*> requirements, double shoot_time = 4) : wheelSpeeds(wheelSpeeds), vision(vision), feedpid(feedpid), output(output)
+{
+  this->shoot_time = shoot_time;
+  AddRequirements(requirements);
+  // Use addRequirements() here to declare subsystem dependencies.
+}
+
 
 // Called when the command is initially scheduled.
 void AutoVisionCommand::Initialize()
@@ -22,7 +32,7 @@ void AutoVisionCommand::Initialize()
 void AutoVisionCommand::Execute()
 {
   timer.Start();
-  if(timer.Get() <= 1)
+  if(timer.Get() <= 1.5)
   {
     feedpid();
     wheelSpeeds->ArcadeDrive(0, vision());
@@ -37,4 +47,4 @@ void AutoVisionCommand::Execute()
 void AutoVisionCommand::End(bool interrupted) {}
 
 // Returns true when the command should end.
-bool AutoVisionCommand::IsFinished() { return timer.Get() > 3; }
+bool AutoVisionCommand::IsFinished() { return timer.Get() > shoot_time; }

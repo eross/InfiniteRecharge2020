@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/XboxController.h>
 #include <frc2/command/button/JoystickButton.h>
 #include <frc2/command/CommandBase.h>
@@ -21,11 +22,13 @@
 #include <frc/trajectory/constraint/DifferentialDriveVoltageConstraint.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/RunCommand.h>
+#include <frc/Timer.h>
 #include "subsystems/DriveSubsystem.h"
 #include "subsystems/ShooterSubsystem.h"
 #include "subsystems/IntakeSubsystem.h"
+#include "subsystems/LiftSubsystem.h"
 #include "commands/AutoVisionCommand.h"
-
+#include "rev/CANSparkMax.h"
 /**
  * This class is where the bulk of the robot should be declared.  Since
  * Command-based is a "declarative" paradigm, very little robot logic should
@@ -41,11 +44,15 @@ class RobotContainer
   frc2::Command* GetAutonomousCommand();
 
   void SetDriveBreakMode(bool breakmode);
+  bool enabled = false;
  private:
-  //frc::SendableChooser<frc2::Command*> m_chooser;
+  bool lifted = false;
+  frc::SendableChooser<int> m_chooser;
+  frc::Timer m_timer;
   DriveSubsystem m_drivesubsystem;
   ShooterSubsystem m_shootersubsystem;
   IntakeSubsystem m_intakesubsystem;
+  LiftSubsystem m_liftsubsystem;
   
   frc::Joystick m_driverController{DriveControllerConst::Controller};
   frc::Joystick m_operatorController{OperatorControllerConst::Controller};

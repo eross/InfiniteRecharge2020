@@ -43,7 +43,7 @@ ShooterSubsystem::ShooterSubsystem()
 
 void ShooterSubsystem::Periodic() 
 {
-    //std::cout << GetDistanceToRPM() << std::endl;
+    //std::cout << GetTargetDistance() << std::endl;
 }
 
 void ShooterSubsystem::SetShooterSpeed(double speed)

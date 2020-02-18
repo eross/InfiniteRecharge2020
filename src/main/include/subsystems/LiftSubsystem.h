@@ -8,23 +8,27 @@
 #pragma once
 
 #include <frc2/command/SubsystemBase.h>
+#include "rev/CANSparkMax.h"
 #include "Constants.h"
 #include <ctre/Phoenix.h>
 
-class IntakeSubsystem : public frc2::SubsystemBase {
+class LiftSubsystem : public frc2::SubsystemBase {
  public:
-  IntakeSubsystem();
+  LiftSubsystem();
 
   /**
    * Will be called periodically whenever the CommandScheduler runs.
    */
   void Periodic();
+  void SetLiftPosition(bool position);
+  void SetRatchetPosition(bool position);
+  void SetWinchSpeed(double speed, double max_position, bool winch);
+  void SetWinchIdleMode(rev::CANSparkMax::IdleMode idlemode);
 
-  void SetIntakeSpeed(double speed);
-  void SetSliderPosition(bool position);
  private:
-  TalonSRX* m_Intake;
-  frc::DoubleSolenoid* m_Slider;
+  rev::CANSparkMax m_Winch{LiftConst::kWinch, rev::CANSparkMax::MotorType::kBrushless};
+  frc::DoubleSolenoid* m_Lift;
+  frc::DoubleSolenoid* m_Ratchet;
   // Components (e.g. motor controllers and sensors) should generally be
   // declared private and exposed only through public methods.
 };

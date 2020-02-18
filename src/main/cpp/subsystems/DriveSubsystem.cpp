@@ -7,7 +7,7 @@ DriveSubsystem::DriveSubsystem() : m_odometry{frc::Rotation2d(units::degree_t(Ge
     limeSource = new LimePIDSource();
     limePID = new frc::PIDController(0.09, 0.0, 0.0, limeSource, limeOutput);
     limePID->SetOutputRange(-.2, .2);
-    limePID->SetSetpoint(-2);
+    limePID->SetSetpoint(-3.3);
     m_colorMatcher.AddColorMatch(kBlueTarget);
     m_colorMatcher.AddColorMatch(kGreenTarget);
     m_colorMatcher.AddColorMatch(kRedTarget);
@@ -44,6 +44,7 @@ void DriveSubsystem::Periodic()
   frc::SmartDashboard::PutNumber("Blue", detectedColor.blue);
   frc::SmartDashboard::PutNumber("Confidence", confidence);
   frc::SmartDashboard::PutString("Detected Color", colorString);
+  //std::cout << GetHeading() << std::endl;
   if(!setDriveReversed)
   {
     m_odometry.Update(frc::Rotation2d(units::degree_t(GetHeading())),

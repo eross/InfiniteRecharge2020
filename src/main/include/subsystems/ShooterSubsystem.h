@@ -35,7 +35,8 @@ class ShooterSubsystem : public frc2::SubsystemBase {
   double GetDistanceToRPM()
   {
     double dist = GetTargetDistance();
-    return 5580.768 - 12.57303 * dist + 0.03979932*(dist * dist);
+    return 7110.378 - 20.36336 * dist + 0.05301945*(dist * dist);
+    //return 5580.768 - 12.57303 * dist + 0.03979932*(dist * dist);
   }
  private:
   TalonSRX* m_Shooter0;
