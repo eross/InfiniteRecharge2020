@@ -4,7 +4,7 @@
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
-
+//woah i signed my name here -> Isaiah M W
 #include "Robot.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -57,6 +57,7 @@ void Robot::AutonomousPeriodic() {}
 
 void Robot::TeleopInit() {
   m_container.enabled = true;
+  m_container.lifty = true;
   // This makes sure that the autonomous stops running when
   // teleop starts running. If you want the autonomous to
   // continue until interrupted by another command, remove

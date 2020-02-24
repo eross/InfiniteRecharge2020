@@ -34,7 +34,6 @@ ShooterSubsystem::ShooterSubsystem()
     m_Shooter2->ConfigNominalOutputReverse(0, ShooterConst::kTimeoutMs);
     m_Shooter2->ConfigPeakOutputForward(1, ShooterConst::kTimeoutMs);
     m_Shooter2->ConfigPeakOutputReverse(0, ShooterConst::kTimeoutMs);
-
     m_Shooter2->Config_kF(ShooterConst::kPIDLoopIdx, ShooterConst::kF, ShooterConst::kTimeoutMs);
     m_Shooter2->Config_kP(ShooterConst::kPIDLoopIdx, ShooterConst::kP, ShooterConst::kTimeoutMs);
     m_Shooter2->Config_kI(ShooterConst::kPIDLoopIdx, ShooterConst::kI, ShooterConst::kTimeoutMs);

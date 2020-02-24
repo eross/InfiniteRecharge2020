@@ -104,4 +104,10 @@ namespace AutoConst
     constexpr double kRamseteZeta = 0.7;
 }
 
+namespace WheelOfFortuneConst
+{
+    const uint8_t
+        kSpinny = 6;
+}
+
 

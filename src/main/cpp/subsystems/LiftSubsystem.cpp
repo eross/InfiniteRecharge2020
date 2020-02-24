@@ -59,6 +59,11 @@ void LiftSubsystem::SetWinchSpeed(double speed, double max_position, bool winch)
     }
 }
 
+void LiftSubsystem::ForceWinchSpeed(double speed)
+{
+    m_Winch.Set(speed);
+}
+
 void LiftSubsystem::SetWinchIdleMode(rev::CANSparkMax::IdleMode idlemode)
 {
     m_Winch.SetIdleMode(idlemode);
@@ -72,4 +77,9 @@ void LiftSubsystem::SetLiftPosition(bool position)
 void LiftSubsystem::SetRatchetPosition(bool position)
 {
     m_Ratchet->Set(position ? frc::DoubleSolenoid::Value::kForward : frc::DoubleSolenoid::Value::kReverse);
+}
+
+double LiftSubsystem::GetCurrentHeight()
+{
+    return m_Winch.GetEncoder().GetPosition();
 }

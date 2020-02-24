@@ -24,6 +24,8 @@ class LiftSubsystem : public frc2::SubsystemBase {
   void SetRatchetPosition(bool position);
   void SetWinchSpeed(double speed, double max_position, bool winch);
   void SetWinchIdleMode(rev::CANSparkMax::IdleMode idlemode);
+  double GetCurrentHeight();
+  void ForceWinchSpeed(double speed);
 
  private:
   rev::CANSparkMax m_Winch{LiftConst::kWinch, rev::CANSparkMax::MotorType::kBrushless};

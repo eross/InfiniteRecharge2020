@@ -27,6 +27,7 @@
 #include "subsystems/ShooterSubsystem.h"
 #include "subsystems/IntakeSubsystem.h"
 #include "subsystems/LiftSubsystem.h"
+#include "subsystems/WheelOfFortuneSubsystem.h"
 #include "commands/AutoVisionCommand.h"
 #include "rev/CANSparkMax.h"
 /**
@@ -45,7 +46,11 @@ class RobotContainer
 
   void SetDriveBreakMode(bool breakmode);
   bool enabled = false;
+  bool lifty = false;
  private:
+  std::string gameData;
+  bool grabdataonce = false;
+  char color;
   bool lifted = false;
   frc::SendableChooser<int> m_chooser;
   frc::Timer m_timer;
@@ -53,6 +58,7 @@ class RobotContainer
   ShooterSubsystem m_shootersubsystem;
   IntakeSubsystem m_intakesubsystem;
   LiftSubsystem m_liftsubsystem;
+  WheelOfFortuneSubsystem m_wheeloffortunesubsystem;
   
   frc::Joystick m_driverController{DriveControllerConst::Controller};
   frc::Joystick m_operatorController{OperatorControllerConst::Controller};

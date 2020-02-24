@@ -34,11 +34,26 @@ class ShooterSubsystem : public frc2::SubsystemBase {
   }
   double GetDistanceToRPM()
   {
+    std::shared_ptr<NetworkTable> table = nt::NetworkTableInstance::GetDefault().GetTable("limelight");
     double dist = GetTargetDistance();
-    return 7110.378 - 20.36336 * dist + 0.05301945*(dist * dist);
+    if(table->GetNumber("tv",0.0) == 0)
+    {
+      return 1500;
+    }
+    else
+    {
+      double target = 7110.378 - 20.36336 * dist + 0.05301945*(dist * dist);
+      return target;
+    }
     //return 5580.768 - 12.57303 * dist + 0.03979932*(dist * dist);
   }
+  void Limelight(bool light)
+  {
+    std::shared_ptr<NetworkTable> table = nt::NetworkTableInstance::GetDefault().GetTable("limelight");
+    table->PutNumber("ledMode", light ? 3 : 1);
+  }
  private:
+  double targetrpm = 0;
   TalonSRX* m_Shooter0;
   TalonSRX* m_Shooter1;
   TalonSRX* m_Shooter2;

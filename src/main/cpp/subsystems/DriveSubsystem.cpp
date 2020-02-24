@@ -8,10 +8,6 @@ DriveSubsystem::DriveSubsystem() : m_odometry{frc::Rotation2d(units::degree_t(Ge
     limePID = new frc::PIDController(0.09, 0.0, 0.0, limeSource, limeOutput);
     limePID->SetOutputRange(-.2, .2);
     limePID->SetSetpoint(-3.3);
-    m_colorMatcher.AddColorMatch(kBlueTarget);
-    m_colorMatcher.AddColorMatch(kGreenTarget);
-    m_colorMatcher.AddColorMatch(kRedTarget);
-    m_colorMatcher.AddColorMatch(kYellowTarget);
     m_leftEncoder.SetPositionConversionFactor(DriveConst::kencoderConstant);
     m_rightEncoder.SetPositionConversionFactor(DriveConst::kencoderConstant);
     m_leftEncoder.SetVelocityConversionFactor(DriveConst::kencoderConstant * 60);
@@ -22,28 +18,6 @@ DriveSubsystem::DriveSubsystem() : m_odometry{frc::Rotation2d(units::degree_t(Ge
 void DriveSubsystem::Periodic()
 {
   //std::cout << "distance: " << GetLeftEncoder().GetPosition() << " : " << -GetRightEncoder().GetPosition() << " angle: " << m_gyro.GetAngle() << std::endl;
-  frc::Color detectedColor = m_colorSensor.GetColor();
-  std::string colorString;
-  double confidence = 0.0;
-  frc::Color matchedColor = m_colorMatcher.MatchClosestColor(detectedColor, confidence);
-  
-  if (matchedColor == kBlueTarget) {
-    colorString = "Blue";
-  } else if (matchedColor == kRedTarget) {
-    colorString = "Red";
-  } else if (matchedColor == kGreenTarget) {
-    colorString = "Green";
-  } else if (matchedColor == kYellowTarget) {
-    colorString = "Yellow";
-  } else {
-    colorString = "Unknown";
-  }
-
-  frc::SmartDashboard::PutNumber("Red", detectedColor.red);
-  frc::SmartDashboard::PutNumber("Green", detectedColor.green);
-  frc::SmartDashboard::PutNumber("Blue", detectedColor.blue);
-  frc::SmartDashboard::PutNumber("Confidence", confidence);
-  frc::SmartDashboard::PutString("Detected Color", colorString);
   //std::cout << GetHeading() << std::endl;
   if(!setDriveReversed)
   {

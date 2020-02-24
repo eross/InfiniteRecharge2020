@@ -12,9 +12,11 @@ RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
   m_chooser.AddDefault("8 trench", 0);
   m_chooser.AddObject("steal", 1);
   m_chooser.AddObject("3 ball", 2);
-  m_chooser.AddObject("8 steal", 3);
+  m_chooser.AddObject("7 steal", 3);
   m_chooser.AddDefault("5 trench", 4);
 	frc::SmartDashboard::PutData("Auto Chooser" , &m_chooser);
+  
+	frc::SmartDashboard::PutNumber("RPM" , 0);
   ConfigureButtonBindings();
   
   m_drivesubsystem.SetDefaultCommand(frc2::RunCommand(
@@ -56,8 +58,16 @@ RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
     [this] {
       if(!lifted)
       {
-        m_shootersubsystem.SetShooterRPM(m_operatorController.GetRawButton(5) ? m_shootersubsystem.GetDistanceToRPM()/*frc::SmartDashboard::GetNumber("RPM", 0)*/ : 0);
-        m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawButton(1) ? 1 : m_operatorController.GetRawButton(8) ? -1 : 0);
+        if(m_operatorController.GetRawButtonPressed(5))
+        {
+          m_shootersubsystem.Limelight(true);
+        }
+        if(m_operatorController.GetRawButtonReleased(5))
+        {
+          m_shootersubsystem.Limelight(false);
+        }
+        m_shootersubsystem.SetShooterRPM(m_operatorController.GetRawButton(5) ? /*m_shootersubsystem.GetDistanceToRPM()*/frc::SmartDashboard::GetNumber("RPM", 0) : 0);
+        m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawButton(1) ? 1 : m_operatorController.GetRawButton(7) ? -1 : 0);
       }
     },
     {&m_shootersubsystem}));
@@ -92,11 +102,27 @@ RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
       {
         lifted = true;
         m_liftsubsystem.SetLiftPosition(true);
-        m_liftsubsystem.SetRatchetPosition(true);
+        if(m_liftsubsystem.GetCurrentHeight() >= -35)
+        {
+          m_liftsubsystem.SetRatchetPosition(true);
+        }
         m_liftsubsystem.SetWinchSpeed(.5, -30, true);
       }
       else if(m_operatorController.GetPOV(0) >= 0)
       {
+        
+        if(lifted)
+        {
+          if(m_operatorController.GetPOV(0) == 180)
+          {
+            m_liftsubsystem.SetRatchetPosition(true);
+            m_liftsubsystem.ForceWinchSpeed(.5);
+          }
+          else
+          {
+            m_liftsubsystem.ForceWinchSpeed(0);
+          }
+        }
         if(!lifted)
         {
           m_liftsubsystem.SetRatchetPosition(false);
@@ -117,6 +143,119 @@ RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
       }
     },
     {&m_liftsubsystem}));
+
+    
+    m_wheeloffortunesubsystem.SetDefaultCommand(frc2::RunCommand(
+    [this] {
+      if(lifty)
+      {
+        m_wheeloffortunesubsystem.SetPosition(true);
+      }
+
+      if(m_operatorController.GetRawButtonPressed(2))
+      {
+        if(!grabdataonce)
+        {
+          gameData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+          grabdataonce = true;
+        }
+        m_wheeloffortunesubsystem.SetPIDEnabled(false);
+      }
+
+      if(m_operatorController.GetRawButton(2))
+      {
+        color = m_wheeloffortunesubsystem.GetColor();
+        if(gameData.length() > 0)
+        {
+          switch (gameData[0])
+          {
+            case 'B' :
+              switch(color)
+              {
+                case 'R' :
+                  m_wheeloffortunesubsystem.SetSpeed(0);
+                  break;
+                default :
+                  m_wheeloffortunesubsystem.SetSpeed(.1);
+                  break;
+              }
+              break;
+            case 'G' :
+            switch(color)
+              {
+                case 'Y' :
+                  m_wheeloffortunesubsystem.SetSpeed(0);
+                  break;
+                default :
+                  m_wheeloffortunesubsystem.SetSpeed(.1);
+                  break;
+              }
+              break;
+            case 'R' :
+            switch(color)
+              {
+                case 'B' :
+                  m_wheeloffortunesubsystem.SetSpeed(0);
+                  break;
+                default :
+                  m_wheeloffortunesubsystem.SetSpeed(.1);
+                  break;
+              }
+              break;
+            case 'Y' :
+            switch(color)
+              {
+                case 'G' :
+                  m_wheeloffortunesubsystem.SetSpeed(0);
+                  break;
+                default :
+                  m_wheeloffortunesubsystem.SetSpeed(.1);
+                  break;
+              }
+              break;
+            default :
+              std::cout << "unreadable color" << gameData[0] << std::endl;
+              break;
+          }
+        } else {
+          std::cout << "no game data" << std::endl;
+        }
+      }
+      else
+      {
+        if(m_operatorController.GetRawButtonPressed(3))
+        {
+          m_wheeloffortunesubsystem.ResetPID();
+          m_wheeloffortunesubsystem.SetPIDEnabled(true);
+        }
+        if(!m_operatorController.GetRawButton(3))
+        {
+          if(m_operatorController.GetRawButton(1))
+          {
+            m_wheeloffortunesubsystem.SetPIDEnabled(true);
+            m_wheeloffortunesubsystem.SetPosition(-100);
+          }
+          else
+          {
+            m_wheeloffortunesubsystem.SetPIDEnabled(false);
+            m_wheeloffortunesubsystem.SetSpeed(0);
+          }
+        }
+        else
+        {
+          m_wheeloffortunesubsystem.SetPosition(4);
+        }
+      }
+
+
+      if(m_operatorController.GetRawButtonPressed(8))
+      {
+        m_wheeloffortunesubsystem.ToggleLifty();
+      }
+    },
+    {&m_wheeloffortunesubsystem}));
+
+      
 }
 
 void RobotContainer::ConfigureButtonBindings()
@@ -377,6 +516,8 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
     if(m_chooser.GetSelected() == 0)
     {
       return new frc2::SequentialCommandGroup(
+      frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true); }, {&m_shootersubsystem}),
         frc2::InstantCommand([this] { 
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
@@ -385,6 +526,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
       frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true);
           m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
       frc2::InstantCommand([this] { 
           m_drivesubsystem.GetLimePID()->Enable(); }, {}),
@@ -398,7 +540,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
       std::move(ramseteCommand4),
       frc2::InstantCommand([this] { 
         m_intakesubsystem.SetIntakeSpeed(1);
-        m_intakesubsystem.SetSliderPosition(false); }, {&m_intakesubsystem}),
+        m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
       frc2::InstantCommand([this] { 
         m_drivesubsystem.ResetOdometry(frc::Pose2d(0.0_m, 0.0_m, frc::Rotation2d(units::degree_t(m_drivesubsystem.GetHeading())))); }, {&m_drivesubsystem}),
       frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
@@ -430,6 +572,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
         frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
         std::move(ramseteCommand7),
         frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true);
           m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
         frc2::InstantCommand([this] { 
           m_drivesubsystem.GetLimePID()->Enable(); }, {}),
@@ -445,6 +588,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
       return new frc2::SequentialCommandGroup(
         std::move(ramseteCommand8),
         frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true);
           m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
         frc2::InstantCommand([this] { 
           m_drivesubsystem.GetLimePID()->Enable(); }, {}),
@@ -470,6 +614,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
         frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
         std::move(ramseteCommand9),
         frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true);
           m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
         frc2::InstantCommand([this] { 
           m_drivesubsystem.GetLimePID()->Enable(); }, {}),
@@ -502,7 +647,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
     }
     else if(m_chooser.GetSelected() == 4)
     {
-            return new frc2::SequentialCommandGroup(
+      return new frc2::SequentialCommandGroup(
         frc2::InstantCommand([this] { 
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
@@ -511,6 +656,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
       frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true);
           m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
       frc2::InstantCommand([this] { 
           m_drivesubsystem.GetLimePID()->Enable(); }, {}),
