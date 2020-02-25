@@ -58,15 +58,15 @@ RobotContainer::RobotContainer()// : m_autonomousCommand(&m_subsystem)
     [this] {
       if(!lifted)
       {
-        if(m_operatorController.GetRawButtonPressed(5))
+        if(m_driverController.GetRawAxis(2) > .4)
         {
           m_shootersubsystem.Limelight(true);
         }
-        if(m_operatorController.GetRawButtonReleased(5))
+        if(m_driverController.GetRawAxis(2) < .4)
         {
           m_shootersubsystem.Limelight(false);
         }
-        m_shootersubsystem.SetShooterRPM(m_operatorController.GetRawButton(5) ? /*m_shootersubsystem.GetDistanceToRPM()*/frc::SmartDashboard::GetNumber("RPM", 0) : 0);
+        m_shootersubsystem.SetShooterRPM(m_operatorController.GetRawButton(5) ? m_shootersubsystem.GetDistanceToRPM()/*frc::SmartDashboard::GetNumber("RPM", 0)*/ : 0);
         m_shootersubsystem.SetIndexerSpeed(m_operatorController.GetRawButton(1) ? 1 : m_operatorController.GetRawButton(7) ? -1 : 0);
       }
     },
@@ -561,6 +561,8 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
     {
       return new frc2::SequentialCommandGroup(
         frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true); }, {&m_shootersubsystem}),
+        frc2::InstantCommand([this] { 
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
         std::move(ramseteCommand6),
@@ -586,6 +588,8 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
     else if(m_chooser.GetSelected() == 2)
     {
       return new frc2::SequentialCommandGroup(
+        frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true); }, {&m_shootersubsystem}),
         std::move(ramseteCommand8),
         frc2::InstantCommand([this] { 
           m_shootersubsystem.Limelight(true);
@@ -602,6 +606,8 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
     else if(m_chooser.GetSelected() == 3)
     {
       return new frc2::SequentialCommandGroup(
+        frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true); }, {&m_shootersubsystem}),
         frc2::InstantCommand([this] { 
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
@@ -628,7 +634,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
         std::move(ramseteCommand10),
-                frc2::InstantCommand([this] { 
+        frc2::InstantCommand([this] { 
           m_intakesubsystem.SetIntakeSpeed(0);
           m_intakesubsystem.SetSliderPosition(false); }, {&m_intakesubsystem}),
         frc2::InstantCommand([this] { 
@@ -636,6 +642,7 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
         frc2::InstantCommand([this] { m_drivesubsystem.SetDriveReversed(true); }, {&m_drivesubsystem}),
         std::move(ramseteCommand11),
         frc2::InstantCommand([this] { 
+          m_shootersubsystem.SetIndexerSpeed(0);
           m_shootersubsystem.SetShooterRPM(m_shootersubsystem.GetDistanceToRPM()); }, {&m_shootersubsystem}),
         frc2::InstantCommand([this] { 
           m_drivesubsystem.GetLimePID()->Enable(); }, {}),
@@ -648,6 +655,8 @@ frc2::Command* RobotContainer::GetAutonomousCommand()
     else if(m_chooser.GetSelected() == 4)
     {
       return new frc2::SequentialCommandGroup(
+        frc2::InstantCommand([this] { 
+          m_shootersubsystem.Limelight(true); }, {&m_shootersubsystem}),
         frc2::InstantCommand([this] { 
           m_intakesubsystem.SetIntakeSpeed(1);
           m_intakesubsystem.SetSliderPosition(true); }, {&m_intakesubsystem}),
